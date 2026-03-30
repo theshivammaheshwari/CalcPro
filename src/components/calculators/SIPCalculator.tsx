@@ -98,7 +98,7 @@ export default function SIPCalculator() {
         <span className="text-sm font-bold text-indigo-600">{display ?? value}</span>
       </div>
       <div className="flex items-center gap-2">
-        <input type="range" min={min} max={max} step={step} value={value}
+        <input type="range" min={min} max={max} step={1} value={value}
           onChange={e => onChange(Number(e.target.value))} className="flex-1" />
         <input type="number" value={value} onChange={e => onChange(Number(e.target.value))}
           className="w-24 px-3 py-1.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white" />

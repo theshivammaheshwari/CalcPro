@@ -49,7 +49,7 @@ export default function TripCost() {
         <span className="text-sm font-bold text-cyan-600">{value}{suffix}</span>
       </div>
       <div className="flex items-center gap-3">
-        <input type="range" min={min} max={max} step={step} value={value}
+        <input type="range" min={min} max={max} step={1} value={value}
           onChange={e => onChange(Number(e.target.value))} className="flex-1" />
         <input type="number" value={value} onChange={e => onChange(Number(e.target.value))}
           className="w-24 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400" />

@@ -1,21 +1,21 @@
 import { useState, createContext, useContext } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  CreditCard, User, TrendingUp, Split, IndianRupee, Coins,
+  CreditCard, User, TrendingUp, Split, Coins,
   DollarSign, MapPin, Calendar, Weight, Users, Calculator, Menu, X,
-  Palette, Coffee
+  Palette, Coffee, Zap
 } from 'lucide-react';
 import CreditCardEMI from './components/calculators/CreditCardEMI';
 import PersonalLoanEMI from './components/calculators/PersonalLoanEMI';
 import StockAverage from './components/calculators/StockAverage';
 import StockSplit from './components/calculators/StockSplit';
-import GeneralEMI from './components/calculators/GeneralEMI';
 import SIPCalculator from './components/calculators/SIPCalculator';
 import FutureValue from './components/calculators/FutureValue';
 import TripCost from './components/calculators/TripCost';
 import AgeCalculator from './components/calculators/AgeCalculator';
 import BMICalculator from './components/calculators/BMICalculator';
 import GroupSplitter from './components/calculators/GroupSplitter';
+import HireMe from './components/HireMe';
 import Footer from './components/layout/Footer';
 
 // ─── THEME SYSTEM ────────────────────────────
@@ -82,37 +82,41 @@ export const useTheme = () => useContext(ThemeContext);
 // ─── CALCULATOR DEFINITIONS ────────────────
 type CalcId =
   | 'credit-card-emi' | 'personal-loan-emi'
-  | 'stock-average' | 'stock-split' | 'general-emi' | 'sip' | 'future-value'
+  | 'stock-average' | 'stock-split' | 'sip' | 'future-value'
   | 'age' | 'bmi'
-  | 'trip-cost' | 'group-splitter';
+  | 'trip-cost' | 'group-splitter'
+  | 'hire-me';
 
 interface CalcItem {
   id: CalcId; label: string; icon: React.ReactNode;
-  category: 'Finance' | 'Investment' | 'Lifestyle' | 'Trip';
+  category: 'Finance' | 'Investment' | 'Lifestyle' | 'Trip' | 'Developer';
   color: string; bgColor: string;
 }
 
 const calculators: CalcItem[] = [
-  { id: 'credit-card-emi', label: 'Credit Card EMI', icon: <CreditCard className="w-4 h-4" />, category: 'Finance', color: 'text-blue-600', bgColor: 'bg-blue-50' },
-  { id: 'personal-loan-emi', label: 'Personal Loan EMI', icon: <User className="w-4 h-4" />, category: 'Finance', color: 'text-violet-600', bgColor: 'bg-violet-50' },
-  { id: 'stock-average', label: 'Stock Average', icon: <TrendingUp className="w-4 h-4" />, category: 'Investment', color: 'text-emerald-600', bgColor: 'bg-emerald-50' },
-  { id: 'stock-split', label: 'Stock Split', icon: <Split className="w-4 h-4" />, category: 'Investment', color: 'text-teal-600', bgColor: 'bg-teal-50' },
-  { id: 'general-emi', label: 'EMI Calculator', icon: <IndianRupee className="w-4 h-4" />, category: 'Investment', color: 'text-indigo-600', bgColor: 'bg-indigo-50' },
-  { id: 'sip', label: 'SIP Calculator', icon: <Coins className="w-4 h-4" />, category: 'Investment', color: 'text-purple-600', bgColor: 'bg-purple-50' },
-  { id: 'future-value', label: 'Future Value', icon: <DollarSign className="w-4 h-4" />, category: 'Investment', color: 'text-orange-600', bgColor: 'bg-orange-50' },
-  { id: 'age', label: 'Age Calculator', icon: <Calendar className="w-4 h-4" />, category: 'Lifestyle', color: 'text-pink-600', bgColor: 'bg-pink-50' },
-  { id: 'bmi', label: 'BMI Calculator', icon: <Weight className="w-4 h-4" />, category: 'Lifestyle', color: 'text-red-600', bgColor: 'bg-red-50' },
-  { id: 'trip-cost', label: 'Trip Cost', icon: <MapPin className="w-4 h-4" />, category: 'Trip', color: 'text-cyan-600', bgColor: 'bg-cyan-50' },
-  { id: 'group-splitter', label: 'Group Splitter', icon: <Users className="w-4 h-4" />, category: 'Trip', color: 'text-sky-600', bgColor: 'bg-sky-50' },
+  ...[
+    { id: 'credit-card-emi', label: 'Credit Card EMI', icon: <CreditCard className="w-4 h-4" />, category: 'Finance', color: 'text-blue-600', bgColor: 'bg-blue-50' },
+    { id: 'personal-loan-emi', label: 'Personal Loan EMI', icon: <User className="w-4 h-4" />, category: 'Finance', color: 'text-violet-600', bgColor: 'bg-violet-50' },
+    { id: 'stock-average', label: 'Stock Average', icon: <TrendingUp className="w-4 h-4" />, category: 'Investment', color: 'text-emerald-600', bgColor: 'bg-emerald-50' },
+    { id: 'stock-split', label: 'Stock Split', icon: <Split className="w-4 h-4" />, category: 'Investment', color: 'text-teal-600', bgColor: 'bg-teal-50' },
+    { id: 'sip', label: 'SIP Calculator', icon: <Coins className="w-4 h-4" />, category: 'Investment', color: 'text-purple-600', bgColor: 'bg-purple-50' },
+    { id: 'future-value', label: 'Future Value', icon: <DollarSign className="w-4 h-4" />, category: 'Investment', color: 'text-orange-600', bgColor: 'bg-orange-50' },
+    { id: 'age', label: 'Age Calculator', icon: <Calendar className="w-4 h-4" />, category: 'Lifestyle', color: 'text-pink-600', bgColor: 'bg-pink-50' },
+    { id: 'bmi', label: 'BMI Calculator', icon: <Weight className="w-4 h-4" />, category: 'Lifestyle', color: 'text-red-600', bgColor: 'bg-red-50' },
+    { id: 'trip-cost', label: 'Trip Cost', icon: <MapPin className="w-4 h-4" />, category: 'Trip', color: 'text-cyan-600', bgColor: 'bg-cyan-50' },
+    { id: 'group-splitter', label: 'Group Splitter', icon: <Users className="w-4 h-4" />, category: 'Trip', color: 'text-sky-600', bgColor: 'bg-sky-50' },
+    { id: 'hire-me', label: 'Hire Me', icon: <Zap className="w-4 h-4" />, category: 'Developer', color: 'text-yellow-600', bgColor: 'bg-yellow-50' },
+  ] as CalcItem[]
 ];
 
-const categories = ['Finance', 'Investment', 'Lifestyle', 'Trip'] as const;
+const categories = ['Finance', 'Investment', 'Lifestyle', 'Trip', 'Developer'] as const;
 
 const categoryMeta: Record<string, { gradient: string; emoji: string }> = {
   Finance:    { gradient: 'from-blue-600 to-violet-600',   emoji: '💳' },
   Investment: { gradient: 'from-emerald-600 to-indigo-600', emoji: '📈' },
   Lifestyle:  { gradient: 'from-pink-600 to-red-600',       emoji: '🏃' },
   Trip:       { gradient: 'from-cyan-600 to-sky-600',       emoji: '✈️' },
+  Developer:  { gradient: 'from-yellow-400 to-amber-600',   emoji: '⭐' },
 };
 
 function renderCalculator(id: CalcId) {
@@ -121,13 +125,13 @@ function renderCalculator(id: CalcId) {
     case 'personal-loan-emi': return <PersonalLoanEMI />;
     case 'stock-average':     return <StockAverage />;
     case 'stock-split':       return <StockSplit />;
-    case 'general-emi':       return <GeneralEMI />;
     case 'sip':               return <SIPCalculator />;
     case 'future-value':      return <FutureValue />;
     case 'age':               return <AgeCalculator />;
     case 'bmi':               return <BMICalculator />;
     case 'trip-cost':         return <TripCost />;
     case 'group-splitter':    return <GroupSplitter />;
+    case 'hire-me':           return <HireMe onBack={() => {}} />;
   }
 }
 
