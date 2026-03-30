@@ -123,25 +123,9 @@ input[type="range"]::-webkit-slider-thumb:hover {
   }
 }
 
-/* Premium animated gradient border on active card */
-@keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position:  200% 0; }
-}
-
+/* Disable animations */
 .glass-card {
   position: relative;
-}
-.glass-card::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: 1rem;
-  background: linear-gradient(90deg, transparent, rgba(99,102,241,0.2), transparent);
-  background-size: 200% 100%;
-  animation: shimmer 3s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 0;
 }
 .glass-card > * { position: relative; z-index: 1; }
 

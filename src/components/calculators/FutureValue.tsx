@@ -109,10 +109,7 @@ export default function FutureValue() {
                   dataKey="value"
                   labelLine={false}
                   label={<CustomLabel />}
-                  isAnimationActive={animated}
-                  animationBegin={0}
-                  animationDuration={1000}
-                  animationEasing="ease-out"
+                  isAnimationActive={false}
                 >
                   {pieData.map((_, i) => <Cell key={i} fill={`url(#fvGrad${i})`} />)}
                 </Pie>

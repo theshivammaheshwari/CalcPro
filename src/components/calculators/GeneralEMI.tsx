@@ -111,10 +111,7 @@ export default function GeneralEMI() {
                   dataKey="value"
                   labelLine={false}
                   label={<CustomLabel />}
-                  isAnimationActive={animated}
-                  animationBegin={0}
-                  animationDuration={900}
-                  animationEasing="ease-out"
+                  isAnimationActive={false}
                 >
                   {pieData.map((_, i) => <Cell key={i} fill={`url(#emiGrad${i})`} />)}
                 </Pie>

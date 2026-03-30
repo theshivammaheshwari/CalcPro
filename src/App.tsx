@@ -140,26 +140,37 @@ function BuyMeACoffeeBtn() {
       return;
     }
     const options = {
-      key: 'rzp_live_WbMdjDSTBNEsE3',
-      amount: 10000, currency: 'INR',
-      name: 'CalcPro', description: 'Support the developer ☕',
-      handler: (res: any) => alert('Thank you! 🎉 Payment ID: ' + res.razorpay_payment_id),
-      prefill: { email: '247shivam@gmail.com', contact: '+91 9468955596' },
+      key: "rzp_live_WbMdjDSTBNEsE3",
+      amount: 10000,
+      currency: "INR",
+      name: "Trip Calculator",
+      description: "Support the developer",
+      handler: function (response: any) {
+        alert("Thank you for your support! Payment ID: " + response.razorpay_payment_id);
+      },
+      prefill: {
+        email: "247shivam@gmail.com",
+        contact: "+91 9468955596",
+      },
       theme: { color: theme.accent },
     };
-    new (window as any).Razorpay(options).open();
+
+    if (typeof (window as any).Razorpay !== 'undefined') {
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } else {
+      window.open('https://razorpay.me/@calcsuitepro', '_blank');
+    }
   };
 
   return (
-    <motion.button
+    <button
       onClick={handleClick}
-      whileHover={{ scale: 1.05, y: -2 }}
-      whileTap={{ scale: 0.97 }}
-      className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold rounded-full shadow-xl shadow-yellow-300/50 transition-colors"
+      className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold rounded-full shadow-lg shadow-yellow-300/50 transition-colors"
     >
       <Coffee className="w-5 h-5" />
       <span className="hidden sm:inline text-sm">Buy Me Coffee</span>
-    </motion.button>
+    </button>
   );
 }
 
@@ -220,18 +231,12 @@ export default function App() {
 
   return (
     <ThemeContext.Provider value={theme}>
-      {/* Razorpay SDK */}
-      <script src="https://checkout.razorpay.com/v1/checkout.js" async />
-
-      <div className={`min-h-screen flex flex-col bg-gradient-to-br ${theme.headerGradient} transition-all duration-500`}>
+      <div className={`min-h-screen flex flex-col bg-gradient-to-br ${theme.headerGradient} transition-colors duration-300`}>
         {/* ── HEADER ── */}
         <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-3">
             {/* Logo */}
-            <motion.div
-              className="flex items-center gap-2.5 shrink-0"
-              initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }}
-            >
+            <div className="flex items-center gap-2.5 shrink-0">
               <div className={`p-2 bg-gradient-to-br ${theme.gradient} rounded-xl shadow-md ${theme.shadow}`}>
                 <Calculator className="w-5 h-5 text-white" />
               </div>
@@ -241,23 +246,22 @@ export default function App() {
                 </h1>
                 <p className="text-[10px] text-gray-400 font-medium tracking-wider uppercase hidden sm:block">All-in-One Calculator</p>
               </div>
-            </motion.div>
+            </div>
 
             {/* Desktop category nav */}
             <nav className="hidden md:flex items-center gap-1 flex-1 justify-center">
               {categories.map(cat => (
-                <motion.button
+                <button
                   key={cat}
-                  whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
                   onClick={() => { const f = calculators.find(c => c.category === cat); if (f) handleSelect(f.id); }}
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors duration-200 ${
                     activeCategory === cat
                       ? `bg-gradient-to-r ${theme.gradient} text-white shadow-md ${theme.shadow}`
                       : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
                   {categoryMeta[cat].emoji} {cat}
-                </motion.button>
+                </button>
               ))}
             </nav>
 
@@ -289,17 +293,16 @@ export default function App() {
                       {categoryMeta[cat].emoji} {cat}
                     </p>
                     <div className="grid grid-cols-2 gap-2">
-                      {calculators.filter(c => c.category === cat).map(c => (
-                        <motion.button
+                  {calculators.filter(c => c.category === cat).map(c => (
+                        <button
                           key={c.id}
-                          whileTap={{ scale: 0.97 }}
                           onClick={() => handleSelect(c.id)}
-                          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                             activeCalc === c.id ? `${c.bgColor} ${c.color} font-semibold` : 'text-gray-600 hover:bg-gray-50 bg-gray-50/50'
                           }`}
                         >
                           {c.icon} {c.label}
-                        </motion.button>
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -319,12 +322,10 @@ export default function App() {
                     {categoryMeta[cat].emoji} {cat}
                   </p>
                   {calculators.filter(c => c.category === cat).map(c => (
-                    <motion.button
+                    <button
                       key={c.id}
-                      whileHover={{ x: 3 }}
-                      whileTap={{ scale: 0.97 }}
                       onClick={() => handleSelect(c.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 mb-0.5 ${
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors mb-0.5 ${
                         activeCalc === c.id
                           ? `${c.bgColor} ${c.color} font-semibold shadow-sm`
                           : 'text-gray-600 hover:bg-gray-100/80'
@@ -332,7 +333,7 @@ export default function App() {
                     >
                       <span className={activeCalc === c.id ? c.color : 'text-gray-400'}>{c.icon}</span>
                       {c.label}
-                    </motion.button>
+                    </button>
                   ))}
                 </div>
               ))}
@@ -342,33 +343,26 @@ export default function App() {
           {/* ── MAIN CONTENT ── */}
           <main className="flex-1 min-w-0">
             {/* Header strip */}
-            <motion.div
-              key={activeCalc + '-header'}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25 }}
-              className="mb-4"
-            >
+            <div className="mb-4">
               <div className={`inline-flex items-center gap-1.5 section-chip ${activeItem.bgColor} ${activeItem.color} mb-2`}>
                 {activeItem.icon}
                 <span>{activeItem.category}</span>
               </div>
               <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{activeItem.label}</h2>
-            </motion.div>
+            </div>
 
             {/* Mobile sub-tabs */}
             <div className="lg:hidden flex gap-2 flex-wrap mb-4">
               {calculators.filter(c => c.category === activeCategory).map(c => (
-                <motion.button
+                <button
                   key={c.id}
-                  whileTap={{ scale: 0.95 }}
                   onClick={() => handleSelect(c.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
                     activeCalc === c.id ? `${c.bgColor} ${c.color}` : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   {c.icon} {c.label}
-                </motion.button>
+                </button>
               ))}
             </div>
 
@@ -376,10 +370,10 @@ export default function App() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeCalc}
-                initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -12, scale: 0.98 }}
-                transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+                initial={{ opacity: 0, scale: 0.99 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.99 }}
+                transition={{ duration: 0.15 }}
                 className="glass-card p-4 sm:p-6 md:p-8"
               >
                 {renderCalculator(activeCalc)}

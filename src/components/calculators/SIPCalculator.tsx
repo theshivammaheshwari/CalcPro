@@ -212,9 +212,7 @@ export default function SIPCalculator() {
                     dataKey="value"
                     labelLine={false}
                     label={<CustomLabel />}
-                    isAnimationActive={animated}
-                    animationBegin={0}
-                    animationDuration={900}
+                    isAnimationActive={false}
                   >
                     {pieData.map((_, i) => (
                       <Cell key={i} fill={`url(#sipGrad${i})`} />
@@ -252,9 +250,9 @@ export default function SIPCalculator() {
                   <YAxis tickFormatter={fmtShort} tick={{ fontSize: 10 }} width={48} tickLine={false} />
                   <Tooltip formatter={(v: number) => fmtINR(v)} labelFormatter={l => `Year ${l}`} content={<CustomTooltip />} />
                   <Area type="monotone" dataKey="Invested" stroke="#4F46E5" strokeWidth={2}
-                    fill="url(#gradInvested)" isAnimationActive={animated} animationDuration={900} />
+                    fill="url(#gradInvested)" isAnimationActive={false} />
                   <Area type="monotone" dataKey="Total Value" stroke="#10B981" strokeWidth={2}
-                    fill="url(#gradTotal)" isAnimationActive={animated} animationDuration={900} />
+                    fill="url(#gradTotal)" isAnimationActive={false} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
