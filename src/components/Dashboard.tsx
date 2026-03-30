@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, orderBy, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, arrayRemove } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { Calculator, Trash2, Clock, Play, Bookmark } from 'lucide-react';
+import { Calculator, Trash2, Clock, Play, Bookmark, LogOut } from 'lucide-react';
 
 interface SavedItem {
   id: string;
@@ -10,6 +10,8 @@ interface SavedItem {
   title: string;
   data: any;
   createdAt: any;
+  isLiveTrip?: boolean;
+  isAdmin?: boolean;
 }
 
 export default function Dashboard({ onLoad }: { onLoad: (calcId: string, data: any) => void }) {
@@ -25,15 +27,29 @@ export default function Dashboard({ onLoad }: { onLoad: (calcId: string, data: a
     }
     const fetchItems = async () => {
       try {
-        const q = query(
-          collection(db, 'saved_calculations'),
-          where('userId', '==', user.uid)
-        );
-        const snapshot = await getDocs(q);
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as SavedItem[];
+        const qSaves = query(collection(db, 'saved_calculations'), where('userId', '==', user.uid));
+        const qTrips = query(collection(db, 'trips'), where('memberUids', 'array-contains', user.uid));
+        
+        const [snapSaves, snapTrips] = await Promise.all([getDocs(qSaves), getDocs(qTrips)]);
+        
+        const savesData = snapSaves.docs.map(doc => ({ id: doc.id, ...doc.data() })) as SavedItem[];
+        const tripsData = snapTrips.docs.map(doc => {
+          const td = doc.data();
+          return {
+            id: doc.id,
+            calcId: 'group-splitter',
+            title: td.title || 'Live Trip',
+            data: { tripId: doc.id },
+            createdAt: td.createdAt,
+            isLiveTrip: true,
+            isAdmin: td.adminUid === user.uid
+          };
+        }) as SavedItem[];
+
+        const combined = [...savesData, ...tripsData];
         // Sort manually to avoid Firestore composite index requirement
-        data.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
-        setItems(data);
+        combined.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+        setItems(combined);
       } catch (err) {
         console.error("Error fetching saved items:", err);
       } finally {
@@ -43,14 +59,32 @@ export default function Dashboard({ onLoad }: { onLoad: (calcId: string, data: a
     fetchItems();
   }, [user]);
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Delete this saved calculation?")) return;
-    try {
-      await deleteDoc(doc(db, 'saved_calculations', id));
-      setItems(items.filter(i => i.id !== id));
-    } catch (err) {
-      console.error(err);
-      alert("Delete failed.");
+  const handleDelete = async (item: SavedItem) => {
+    if (item.isLiveTrip) {
+      if (item.isAdmin) {
+        if (!window.confirm("Delete this entire Live Trip for EVERYONE?")) return;
+        try {
+          await deleteDoc(doc(db, 'trips', item.id));
+          setItems(items.filter(i => i.id !== item.id));
+        } catch (e) { alert("Failed to delete trip."); }
+      } else {
+        if (!window.confirm("Leave this trip? You will lose access until someone sends you the link again.")) return;
+        try {
+          await updateDoc(doc(db, 'trips', item.id), {
+            memberUids: arrayRemove(user!.uid)
+          });
+          setItems(items.filter(i => i.id !== item.id));
+        } catch (e) { alert("Failed to leave trip."); }
+      }
+    } else {
+      if (!window.confirm("Delete this saved calculation?")) return;
+      try {
+        await deleteDoc(doc(db, 'saved_calculations', item.id));
+        setItems(items.filter(i => i.id !== item.id));
+      } catch (err) {
+        console.error(err);
+        alert("Delete failed.");
+      }
     }
   };
 
@@ -87,14 +121,15 @@ export default function Dashboard({ onLoad }: { onLoad: (calcId: string, data: a
         {items.map(item => (
           <div key={item.id} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow relative group">
             <button 
-              onClick={() => handleDelete(item.id)}
+              onClick={() => handleDelete(item)}
               className="absolute top-4 right-4 p-1.5 text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 rounded-lg transition-all"
+              title={item.isLiveTrip && !item.isAdmin ? "Leave Trip" : "Delete"}
             >
-              <Trash2 className="w-4 h-4" />
+              {item.isLiveTrip && !item.isAdmin ? <LogOut className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
             </button>
             <div className="flex items-center gap-2 mb-3">
-               <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-wider rounded-lg">
-                 {item.calcId.replace(/-/g, ' ')}
+               <span className={`px-2.5 py-1 ${item.isLiveTrip ? 'bg-emerald-50 text-emerald-700' : 'bg-indigo-50 text-indigo-700'} text-xs font-bold uppercase tracking-wider rounded-lg`}>
+                 {item.isLiveTrip ? 'Live Trip' : item.calcId.replace(/-/g, ' ')}
                </span>
             </div>
             <h3 className="text-lg font-bold text-gray-900 mb-1 truncate pr-8">{item.title}</h3>

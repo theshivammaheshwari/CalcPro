@@ -171,7 +171,7 @@ const categoryMeta: Record<string, { gradient: string; emoji: string }> = {
   Developer:  { gradient: 'from-yellow-400 to-amber-600',   emoji: '⭐' },
 };
 
-function renderCalculator(id: CalcId, loadData: any, handleSelect: any) {
+function renderCalculator(id: CalcId, loadData: any, handleSelect: any, tripId: string | null = null, loadKey: number = 0) {
   if (id === 'dashboard') return <Dashboard onLoad={handleSelect} />;
   switch (id) {
     case 'credit-card-emi':   return <CreditCardEMI />;
@@ -183,8 +183,8 @@ function renderCalculator(id: CalcId, loadData: any, handleSelect: any) {
     case 'future-value':      return <FutureValue />;
     case 'age':               return <AgeCalculator />;
     case 'bmi':               return <BMICalculator />;
-    case 'trip-cost':         return <TripCost initialData={loadData} />;
-    case 'group-splitter':    return <GroupSplitter initialData={loadData} />;
+    case 'trip-cost':         return <TripCost key={loadData ? `loaded-${loadKey}` : 'new'} initialData={loadData} />;
+    case 'group-splitter':    return <GroupSplitter key={tripId ? `live-${tripId}` : (loadData ? `local-${loadKey}` : `new-${loadKey}`)} initialData={loadData} initialTripId={tripId} />;
     case 'hire-me':           return <HireMe onBack={() => {}} />;
   }
 }
@@ -279,8 +279,19 @@ function ThemePicker({ current, onChange }: { current: ThemeId; onChange: (id: T
 export default function App() {
   const [activeCalc, setActiveCalc] = useState<CalcId>('credit-card-emi');
   const [loadData, setLoadData] = useState<any>(null);
+  const [loadKey, setLoadKey] = useState<number>(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [themeId, setThemeId] = useState<ThemeId>('indigo');
+  const [activeTripId, setActiveTripId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tripId = params.get('tripId');
+    if (tripId) {
+      setActiveCalc('group-splitter');
+      setActiveTripId(tripId);
+    }
+  }, []);
 
   const theme = themes.find(t => t.id === themeId)!;
   const activeItem = calculators.find(c => c.id === activeCalc) || { label: 'Dashboard', category: '', color: '', bgColor: 'bg-white', icon: <div/> };
@@ -289,6 +300,20 @@ export default function App() {
   const handleSelect = (id: CalcId, data: any = null) => { 
     setActiveCalc(id); 
     setLoadData(data);
+    setLoadKey(Date.now());
+    
+    if (id === 'group-splitter' && data?.tripId) {
+      setActiveTripId(data.tripId);
+      const url = new URL(window.location.href);
+      url.searchParams.set('tripId', data.tripId);
+      window.history.pushState({}, '', url.toString());
+    } else {
+      setActiveTripId(null);
+      const url = new URL(window.location.href);
+      url.searchParams.delete('tripId');
+      window.history.pushState({}, '', url.toString());
+    }
+    
     setMobileMenuOpen(false); 
   };
 
@@ -441,7 +466,7 @@ export default function App() {
                 transition={{ duration: 0.15 }}
                 className="glass-card p-4 sm:p-6 md:p-8"
               >
-                {renderCalculator(activeCalc, loadData, handleSelect)}
+                {renderCalculator(activeCalc, loadData, handleSelect, activeTripId, loadKey)}
               </motion.div>
             </AnimatePresence>
           </main>
