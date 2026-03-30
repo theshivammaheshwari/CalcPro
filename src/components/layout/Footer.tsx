@@ -11,7 +11,7 @@ export default function Footer() {
               <div className="p-1.5 bg-gradient-to-br from-indigo-600 to-cyan-500 rounded-lg">
                 <Calculator className="w-4 h-4 text-white" />
               </div>
-              <span className="font-bold text-gray-900">CalcPro</span>
+              <span className="font-bold text-gray-900">CalcIndia</span>
             </div>
             <p className="text-sm text-gray-500">Built with ❤️ by</p>
             <a
@@ -78,7 +78,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-8 pt-6 border-t border-gray-100 text-center text-xs text-gray-400">
-          © 2024 CalcPro · All calculators are for informational purposes only
+          © 2024 CalcIndia · All calculators are for informational purposes only
         </div>
       </div>
     </footer>

@@ -246,7 +246,7 @@ export default function App() {
               </div>
               <div>
                 <h1 className={`text-lg font-extrabold bg-gradient-to-r ${theme.gradient} bg-clip-text text-transparent leading-tight`}>
-                  CalcPro
+                  CalcIndia
                 </h1>
                 <p className="text-[10px] text-gray-400 font-medium tracking-wider uppercase hidden sm:block">All-in-One Calculator</p>
               </div>
