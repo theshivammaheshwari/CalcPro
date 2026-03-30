@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PlusCircle, Receipt, Users, Wallet, ArrowRight, Pencil, Trash2, X, UserPlus, Home, User, Users2, Share2, ShieldAlert, Check, Link, KeyRound, Loader2 } from 'lucide-react';
+import { PlusCircle, Receipt, Users, Wallet, ArrowRight, Pencil, Trash2, X, UserPlus, Home, User, Users2, Share2, ShieldAlert, Check, Link, KeyRound, Loader2, Lock, Unlock } from 'lucide-react';
 import { doc, onSnapshot, setDoc, updateDoc, serverTimestamp, arrayUnion, query, collection, where, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../contexts/AuthContext';
@@ -33,6 +33,7 @@ export default function GroupSplitter({ initialData, initialTripId }: { initialD
   const [joinCode, setJoinCode] = useState('');
   const [joining, setJoining] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
 
   // Input State
   const [newName, setNewName] = useState('');
@@ -59,6 +60,7 @@ export default function GroupSplitter({ initialData, initialTripId }: { initialD
         setAdminUid(d.adminUid);
         setTitle(d.title || 'Untitled Trip');
         setPasscode(d.passcode || '');
+        setIsLocked(d.isLocked || false);
         setPeople(d.people || []);
         setExpenses(d.expenses || []);
         setFamilies(d.families || {});
@@ -97,6 +99,7 @@ export default function GroupSplitter({ initialData, initialTripId }: { initialD
       adminUid: user.uid,
       title,
       passcode: code,
+      isLocked: false,
       memberUids: [user.uid],
       people,
       expenses,
@@ -141,8 +144,13 @@ export default function GroupSplitter({ initialData, initialTripId }: { initialD
     setJoining(false);
   };
 
+  const toggleLock = async () => {
+    if (!isAdmin || !isLive) return;
+    await pullUpdate({ isLocked: !isLocked });
+  };
+
   // Interaction handlers
-  const canEdit = isLive ? (isAdmin || iAmJoined) : true;
+  const canEdit = isLive ? (isAdmin || (iAmJoined && !isLocked)) : true;
   
   const addPerson = async () => {
     const n = newName.trim();
@@ -317,7 +325,22 @@ export default function GroupSplitter({ initialData, initialTripId }: { initialD
           ) : (
              <input value={title} onChange={e => setTitle(e.target.value)} className="text-xl font-bold text-gray-900 bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-sky-500 outline-none px-1 py-0.5 transition-colors" placeholder="Trip Title" />
           )}
-          {isLive && <p className="text-[11px] text-gray-500 uppercase tracking-widest mt-1 font-semibold">{isAdmin ? '👑 You are Admin' : `👤 You are ${myPerson?.name || 'Observer'}`}</p>}
+          {isLive && (
+            <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+              <p className="text-[11px] text-gray-500 uppercase tracking-widest font-semibold">{isAdmin ? '👑 You are Admin' : `👤 You are ${myPerson?.name || 'Observer'}`}</p>
+              
+              {isAdmin ? (
+                <button onClick={toggleLock} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold transition-colors border ${isLocked ? 'bg-red-50 text-red-600 border-red-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}`}>
+                  {isLocked ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                  {isLocked ? 'Trip Locked' : 'Trip Unlocked'}
+                </button>
+              ) : isLocked && (
+                <span className="flex items-center gap-1.5 px-2.5 py-1 bg-red-50 text-red-600 border border-red-200 rounded-md text-[10px] font-bold">
+                  <Lock className="w-3 h-3" /> Locked by Admin
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {isLive ? (
@@ -428,7 +451,7 @@ export default function GroupSplitter({ initialData, initialTripId }: { initialD
                 <thead><tr><th>Payer</th><th>Item</th><th>Amount</th><th>For</th>{canEdit && <th></th>}</tr></thead>
                 <tbody>
                   {expenses.map((e) => {
-                    const canModify = !isLive || isAdmin || e.addedByUid === user?.uid;
+                    const canModify = !isLive || isAdmin || (!isLocked && e.addedByUid === user?.uid);
                     return (
                     <tr key={e.id}>
                       <td className="font-medium text-gray-900">{e.payer}</td>
