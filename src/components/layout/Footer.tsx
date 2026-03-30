@@ -23,7 +23,7 @@ export default function Footer() {
               Mr. Shivam Maheshwari
             </a>
             <p className="text-xs text-gray-400 mt-1">
-              Grateful to <a href="https://linkedin.com/in/abhijain007" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-indigo-500">Mr. Abhishek Jain</a> for suggestions
+              Grateful to <a href="https://www.linkedin.com/in/abhishek-jain007/" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-indigo-500">Mr. Abhishek Jain</a> for suggestions
             </p>
           </div>
 
