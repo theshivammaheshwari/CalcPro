@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "[ \"$OS\" = \"Windows_NT\" ] || chmod +x node_modules/.bin/tsc || true"
   },
   "dependencies": {
     "date-fns": "^4.1.0",
