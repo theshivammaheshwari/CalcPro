@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { User, TrendingUp, DollarSign, Percent, Calendar } from 'lucide-react';
+import SaveCalculation from '../SaveCalculation';
 
 interface AmortizationRow {
   month: number;
@@ -22,8 +23,8 @@ interface Results {
 const fmt = (n: number) =>
   new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(n).replace(/^/, '₹');
 
-export default function PersonalLoanEMI() {
-  const [inputs, setInputs] = useState({ principal: 1000000, annualRate: 12, tenureMonths: 24, processingFeeRate: 1 });
+export default function PersonalLoanEMI({ initialData }: { initialData?: any }) {
+  const [inputs, setInputs] = useState(initialData?.inputs ?? { principal: 1000000, annualRate: 12, tenureMonths: 24, processingFeeRate: 1 });
   const [results, setResults] = useState<Results | null>(null);
   const [animKey, setAnimKey] = useState(0);
 
@@ -170,6 +171,8 @@ export default function PersonalLoanEMI() {
           </div>
         </div>
       )}
+      
+      <SaveCalculation calcId="personal-loan-emi" data={{ inputs }} />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { IndianRupee, PieChart as PieIcon, ArrowDownToLine, Zap } from 'lucide-react';
 import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts';
+import SaveCalculation from '../SaveCalculation';
 
 const fmtINR = (n: number) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
@@ -25,11 +26,11 @@ const Slider = ({ label, value, min, max, step, onChange, display }: {
   </div>
 );
 
-export default function LoanPrepayment() {
-  const [principal, setPrincipal] = useState(2500000); // 25 Lakhs
-  const [rate, setRate] = useState(8.5);
-  const [tenureYears, setTenureYears] = useState(15);
-  const [prepayment, setPrepayment] = useState(300000); // 3 Lakhs
+export default function LoanPrepayment({ initialData }: { initialData?: any }) {
+  const [principal, setPrincipal] = useState(initialData?.principal ?? 2500000); // 25 Lakhs
+  const [rate, setRate] = useState(initialData?.rate ?? 8.5);
+  const [tenureYears, setTenureYears] = useState(initialData?.tenureYears ?? 15);
+  const [prepayment, setPrepayment] = useState(initialData?.prepayment ?? 300000); // 3 Lakhs
 
   // Ensure robust calculations
   const calculate = () => {
@@ -212,6 +213,8 @@ export default function LoanPrepayment() {
                 </div>
              </div>
           )}
+
+          <SaveCalculation calcId="loan-prepayment" data={{ principal, rate, tenureYears, prepayment }} />
         </div>
       </div>
     </div>

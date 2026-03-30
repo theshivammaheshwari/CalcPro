@@ -1,20 +1,21 @@
 import { useState } from 'react';
 import { PlusCircle, Receipt, Users, Wallet, ArrowRight, Pencil, Trash2, X, UserPlus, Home, User, Users2 } from 'lucide-react';
+import SaveCalculation from '../SaveCalculation';
 
 interface Expense { payer: string; item: string; amount: number; sharedAmong: string[]; }
 interface IndividualData { paid: number; commonShare: number; exclusiveShare: number; totalShare: number; netAmount: number; }
 
-export default function GroupSplitter() {
-  const [people, setPeople] = useState<string[]>([]);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
+export default function GroupSplitter({ initialData }: { initialData?: any }) {
+  const [people, setPeople] = useState<string[]>(initialData?.people ?? []);
+  const [expenses, setExpenses] = useState<Expense[]>(initialData?.expenses ?? []);
   const [payer, setPayer] = useState('');
   const [item, setItem] = useState('');
   const [amount, setAmount] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'people' | 'expense' | 'summary'>('people');
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
-  const [families, setFamilies] = useState<Record<string, string[]>>({});
-  const [familyHeads, setFamilyHeads] = useState<Record<string, string>>({});
+  const [families, setFamilies] = useState<Record<string, string[]>>(initialData?.families ?? {});
+  const [familyHeads, setFamilyHeads] = useState<Record<string, string>>(initialData?.familyHeads ?? {});
   const [fHead, setFHead] = useState('');
   const [fMembers, setFMembers] = useState('');
   const [newName, setNewName] = useState('');
@@ -328,6 +329,8 @@ export default function GroupSplitter() {
           </div>
         </div>
       )}
+
+      <SaveCalculation calcId="group-splitter" data={{ people, expenses, families, familyHeads }} />
     </div>
   );
 }

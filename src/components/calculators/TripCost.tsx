@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MapPin, Plus, Trash2 } from 'lucide-react';
 import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts';
+import SaveCalculation from '../SaveCalculation';
 
 const fmtINR = (n: number) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
@@ -29,12 +30,12 @@ const Slider = ({ label, value, min, max, step, onChange, suffix }: {
   </div>
 );
 
-export default function TripCost() {
-  const [distance, setDistance] = useState(530);
-  const [fuelEfficiency, setFuelEfficiency] = useState(15);
-  const [fuelCostPerLiter, setFuelCostPerLiter] = useState(100);
-  const [people, setPeople] = useState(4);
-  const [expenses, setExpenses] = useState<Expense[]>([{ type: 'Food', amount: 500 }]);
+export default function TripCost({ initialData }: { initialData?: any }) {
+  const [distance, setDistance] = useState(initialData?.distance ?? 530);
+  const [fuelEfficiency, setFuelEfficiency] = useState(initialData?.fuelEfficiency ?? 15);
+  const [fuelCostPerLiter, setFuelCostPerLiter] = useState(initialData?.fuelCostPerLiter ?? 100);
+  const [people, setPeople] = useState(initialData?.people ?? 4);
+  const [expenses, setExpenses] = useState<Expense[]>(initialData?.expenses ?? [{ type: 'Food', amount: 500 }]);
   const [newType, setNewType] = useState('Food');
   const [newAmount, setNewAmount] = useState('');
 
@@ -143,6 +144,8 @@ export default function TripCost() {
               </div>
             ))}
           </div>
+
+          <SaveCalculation calcId="trip-cost" data={{ distance, fuelEfficiency, fuelCostPerLiter, people, expenses }} />
         </div>
       </div>
     </div>
