@@ -5,11 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npx tsc && vite build",
+    "build": "tsc && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "vercel-build": "npx tsc && vite build",
-    "prepare": "chmod +x node_modules/.bin/tsc || true"
+    "preview": "vite preview"
   },
   "dependencies": {
     "date-fns": "^4.1.0",
