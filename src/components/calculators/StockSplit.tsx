@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { RefreshCw, Split } from 'lucide-react';
+import SaveCalculation from '../SaveCalculation';
 
 interface Results { newPrice: number; additionalShares: number; totalShares: number; refundAmount: number; }
 
 const fmtINR = (n: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(n);
 
-export default function StockSplit() {
-  const [currentPrice, setCurrentPrice] = useState(100);
-  const [splitRatio, setSplitRatio] = useState('1:2');
-  const [sharesOwned, setSharesOwned] = useState(100);
+export default function StockSplit({ initialData }: { initialData?: any }) {
+  const [currentPrice, setCurrentPrice] = useState(initialData?.currentPrice ?? 100);
+  const [splitRatio, setSplitRatio] = useState(initialData?.splitRatio ?? '1:2');
+  const [sharesOwned, setSharesOwned] = useState(initialData?.sharesOwned ?? 100);
   const [results, setResults] = useState<Results | null>(null);
 
   const calculate = () => {
@@ -78,6 +79,7 @@ export default function StockSplit() {
           )}
         </div>
       </div>
+      <SaveCalculation calcId="stock-split" data={{ currentPrice, splitRatio, sharesOwned }} />
     </div>
   );
 }

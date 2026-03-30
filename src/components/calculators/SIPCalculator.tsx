@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Coins, ArrowUpRight, Wallet } from 'lucide-react';
+import SaveCalculation from '../SaveCalculation';
 import {
   PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer,
   AreaChart, Area, XAxis, YAxis, CartesianGrid
@@ -36,13 +37,13 @@ const Slider = ({ label, value, min, max, step, onChange, display }: {
   </div>
 );
 
-export default function SIPCalculator() {
-  const [type, setType] = useState<CalcType>('sip');
-  const [amount, setAmount] = useState(5000);
-  const [lumpsum, setLumpsum] = useState(100000);
-  const [rate, setRate] = useState(12);
-  const [years, setYears] = useState(10);
-  const [stepUp, setStepUp] = useState(10);
+export default function SIPCalculator({ initialData }: { initialData?: any }) {
+  const [type, setType] = useState<CalcType>(initialData?.type ?? 'sip');
+  const [amount, setAmount] = useState(initialData?.amount ?? 5000);
+  const [lumpsum, setLumpsum] = useState(initialData?.lumpsum ?? 100000);
+  const [rate, setRate] = useState(initialData?.rate ?? 12);
+  const [years, setYears] = useState(initialData?.years ?? 10);
+  const [stepUp, setStepUp] = useState(initialData?.stepUp ?? 10);
   const [animated, setAnimated] = useState(false);
 
   useEffect(() => {
@@ -261,6 +262,7 @@ export default function SIPCalculator() {
           </div>
         </div>
       </div>
+      <SaveCalculation calcId="sip" data={{ type, amount, lumpsum, rate, years, stepUp }} />
     </div>
   );
 }

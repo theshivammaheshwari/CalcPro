@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, arrayRemove } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { Calculator, Trash2, Clock, Play, Bookmark, LogOut } from 'lucide-react';
+import { Calculator, Trash2, Clock, Play, Bookmark, LogOut, Search } from 'lucide-react';
 
 interface SavedItem {
   id: string;
@@ -18,6 +18,7 @@ export default function Dashboard({ onLoad }: { onLoad: (calcId: string, data: a
   const { user } = useAuth();
   const [items, setItems] = useState<SavedItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (!user) {
@@ -111,41 +112,66 @@ export default function Dashboard({ onLoad }: { onLoad: (calcId: string, data: a
     );
   }
 
+  const filteredItems = items.filter(item => {
+    const q = searchQuery.toLowerCase();
+    const type = item.isLiveTrip ? 'live trip' : item.calcId.replace(/-/g, ' ');
+    return item.title.toLowerCase().includes(q) || type.toLowerCase().includes(q);
+  });
+
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-        <Bookmark className="w-6 h-6 text-indigo-600" /> My Saved Calculations
-      </h2>
-      
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {items.map(item => (
-          <div key={item.id} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow relative group">
-            <button 
-              onClick={() => handleDelete(item)}
-              className="absolute top-4 right-4 p-1.5 text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 rounded-lg transition-all"
-              title={item.isLiveTrip && !item.isAdmin ? "Leave Trip" : "Delete"}
-            >
-              {item.isLiveTrip && !item.isAdmin ? <LogOut className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
-            </button>
-            <div className="flex items-center gap-2 mb-3">
-               <span className={`px-2.5 py-1 ${item.isLiveTrip ? 'bg-emerald-50 text-emerald-700' : 'bg-indigo-50 text-indigo-700'} text-xs font-bold uppercase tracking-wider rounded-lg`}>
-                 {item.isLiveTrip ? 'Live Trip' : item.calcId.replace(/-/g, ' ')}
-               </span>
-            </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-1 truncate pr-8">{item.title}</h3>
-            <p className="text-xs text-gray-400 flex items-center gap-1 mb-5">
-              <Clock className="w-3.5 h-3.5" /> 
-              {item.createdAt?.toDate ? new Date(item.createdAt.toDate()).toLocaleDateString() : 'Recently'}
-            </p>
-            <button 
-              onClick={() => onLoad(item.calcId, item.data)}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-800 font-semibold rounded-xl transition-colors"
-            >
-              <Play className="w-4 h-4" /> Open & Load Data
-            </button>
-          </div>
-        ))}
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <Bookmark className="w-6 h-6 text-indigo-600" /> My Saved Calculations
+        </h2>
+        <div className="relative">
+          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input 
+            type="text" 
+            placeholder="Search your saves..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full sm:w-64 pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow shadow-sm"
+          />
+        </div>
       </div>
+      
+      {filteredItems.length === 0 ? (
+        <div className="p-12 text-center bg-gray-50 border border-gray-100 border-dashed rounded-3xl">
+          <h3 className="text-lg font-bold text-gray-800 mb-1">No Results Found</h3>
+          <p className="text-gray-500">No saved calculation matches "{searchQuery}"</p>
+        </div>
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredItems.map(item => (
+            <div key={item.id} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow relative group">
+              <button 
+                onClick={() => handleDelete(item)}
+                className="absolute top-4 right-4 p-1.5 text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 rounded-lg transition-all"
+                title={item.isLiveTrip && !item.isAdmin ? "Leave Trip" : "Delete"}
+              >
+                {item.isLiveTrip && !item.isAdmin ? <LogOut className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
+              </button>
+              <div className="flex items-center gap-2 mb-3">
+                 <span className={`px-2.5 py-1 ${item.isLiveTrip ? 'bg-emerald-50 text-emerald-700' : 'bg-indigo-50 text-indigo-700'} text-xs font-bold uppercase tracking-wider rounded-lg`}>
+                   {item.isLiveTrip ? 'Live Trip' : item.calcId.replace(/-/g, ' ')}
+                 </span>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1 truncate pr-8">{item.title}</h3>
+              <p className="text-xs text-gray-400 flex items-center gap-1 mb-5">
+                <Clock className="w-3.5 h-3.5" /> 
+                {item.createdAt?.toDate ? new Date(item.createdAt.toDate()).toLocaleDateString() : 'Recently'}
+              </p>
+              <button 
+                onClick={() => onLoad(item.calcId, item.data)}
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-800 font-semibold rounded-xl transition-colors"
+              >
+                <Play className="w-4 h-4" /> Open & Load Data
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

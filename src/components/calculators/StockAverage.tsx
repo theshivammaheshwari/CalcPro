@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { RefreshCw, TrendingUp } from 'lucide-react';
+import SaveCalculation from '../SaveCalculation';
 
 interface Entry { units: number; price: number; }
 interface Results { totalUnits: number; averagePrice: number; totalAmount: number; }
 
 const fmtINR = (n: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(n);
 
-export default function StockAverage() {
-  const [entries, setEntries] = useState<Entry[]>([{ units: 0, price: 0 }, { units: 0, price: 0 }]);
+export default function StockAverage({ initialData }: { initialData?: any }) {
+  const [entries, setEntries] = useState<Entry[]>(initialData?.entries ?? [{ units: 0, price: 0 }, { units: 0, price: 0 }]);
   const [results, setResults] = useState<Results | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -84,6 +85,7 @@ export default function StockAverage() {
           ))}
         </div>
       )}
+      <SaveCalculation calcId="stock-average" data={{ entries }} />
     </div>
   );
 }

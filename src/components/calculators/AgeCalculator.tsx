@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Calculator } from 'lucide-react';
 import { format, differenceInYears, differenceInMonths, differenceInDays } from 'date-fns';
+import SaveCalculation from '../SaveCalculation';
 
-export default function AgeCalculator() {
-  const [birthDate, setBirthDate] = useState('');
-  const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+export default function AgeCalculator({ initialData }: { initialData?: any }) {
+  const [birthDate, setBirthDate] = useState(initialData?.birthDate ?? '');
+  const [endDate, setEndDate] = useState(initialData?.endDate ?? format(new Date(), 'yyyy-MM-dd'));
   const [age, setAge] = useState<{ years: number; months: number; days: number } | null>(null);
   const [error, setError] = useState('');
 
@@ -106,6 +107,7 @@ export default function AgeCalculator() {
           </div>
         </div>
       </div>
+      <SaveCalculation calcId="age" data={{ birthDate, endDate }} />
     </div>
   );
 }

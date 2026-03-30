@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Weight } from 'lucide-react';
+import SaveCalculation from '../SaveCalculation';
 
 type Gender = 'male' | 'female';
 type Unit = 'metric' | 'imperial';
@@ -31,12 +32,12 @@ const getStatus = (cat: string) => {
   return { msg: '🏃 Time to run! Maintaining healthy weight reduces many health risks.', color: 'text-red-600' };
 };
 
-export default function BMICalculator() {
-  const [gender, setGender] = useState<Gender>('male');
-  const [age, setAge] = useState(33);
-  const [height, setHeight] = useState(173);
-  const [weight, setWeight] = useState(75);
-  const [unit, setUnit] = useState<Unit>('metric');
+export default function BMICalculator({ initialData }: { initialData?: any }) {
+  const [gender, setGender] = useState<Gender>(initialData?.gender ?? 'male');
+  const [age, setAge] = useState(initialData?.age ?? 33);
+  const [height, setHeight] = useState(initialData?.height ?? 173);
+  const [weight, setWeight] = useState(initialData?.weight ?? 75);
+  const [unit, setUnit] = useState<Unit>(initialData?.unit ?? 'metric');
   const [bmi, setBmi] = useState<number | null>(null);
 
   const calculate = () => {
@@ -157,6 +158,7 @@ export default function BMICalculator() {
           </div>
         </div>
       </div>
+      <SaveCalculation calcId="bmi" data={{ gender, age, height, weight, unit }} />
     </div>
   );
 }

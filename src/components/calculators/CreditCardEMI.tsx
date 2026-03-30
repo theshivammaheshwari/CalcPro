@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CreditCard, FileText, TrendingUp, DollarSign, Percent, Calendar } from 'lucide-react';
+import SaveCalculation from '../SaveCalculation';
 
 interface AmortizationRow {
   month: number;
@@ -25,8 +26,8 @@ interface Results {
 const fmt = (n: number) =>
   new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(n).replace(/^/, '₹');
 
-export default function CreditCardEMI() {
-  const [inputs, setInputs] = useState({ principal: 1000000, annualRate: 12, tenureMonths: 24, gstRate: 18, processingFeeRate: 1 });
+export default function CreditCardEMI({ initialData }: { initialData?: any }) {
+  const [inputs, setInputs] = useState(initialData || { principal: 1000000, annualRate: 12, tenureMonths: 24, gstRate: 18, processingFeeRate: 1 });
   const [results, setResults] = useState<Results | null>(null);
   const [animKey, setAnimKey] = useState(0);
 
@@ -55,7 +56,7 @@ export default function CreditCardEMI() {
 
   useEffect(() => { calculate(); }, [inputs]);
 
-  const set = (field: string, value: number) => setInputs(p => ({ ...p, [field]: value }));
+  const set = (field: string, value: number) => setInputs((p: any) => ({ ...p, [field]: value }));
 
   return (
     <div className="space-y-8">
@@ -183,6 +184,8 @@ export default function CreditCardEMI() {
           </div>
         </div>
       )}
+
+      <SaveCalculation calcId="credit-card-emi" data={inputs} />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { DollarSign } from 'lucide-react';
+import SaveCalculation from '../SaveCalculation';
 import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts';
 
 const fmtINR = (n: number) =>
@@ -28,10 +29,10 @@ const Slider = ({ label, value, min, max, step, onChange, display }: {
   </div>
 );
 
-export default function FutureValue() {
-  const [initial, setInitial] = useState(100000);
-  const [rate, setRate] = useState(10);
-  const [years, setYears] = useState(5);
+export default function FutureValue({ initialData }: { initialData?: any }) {
+  const [initial, setInitial] = useState(initialData?.initial ?? 100000);
+  const [rate, setRate] = useState(initialData?.rate ?? 10);
+  const [years, setYears] = useState(initialData?.years ?? 5);
   const [animated, setAnimated] = useState(false);
 
   useEffect(() => {
@@ -122,6 +123,7 @@ export default function FutureValue() {
           </div>
         </div>
       </div>
+      <SaveCalculation calcId="future-value" data={{ initial, rate, years }} />
     </div>
   );
 }
