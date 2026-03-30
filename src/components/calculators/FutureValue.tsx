@@ -10,6 +10,24 @@ const COLORS = [
   { from: '#ea580c', to: '#fbbf24' },
 ];
 
+const Slider = ({ label, value, min, max, step, onChange, display }: {
+  label: string; value: number; min: number; max: number; step: number;
+  onChange: (v: number) => void; display?: string;
+}) => (
+  <div>
+    <div className="flex justify-between mb-2">
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <span className="text-sm font-bold text-orange-600">{display ?? value}</span>
+    </div>
+    <div className="flex items-center gap-3">
+      <input type="range" min={min} max={max} step={1} value={value}
+        onChange={e => onChange(Number(e.target.value))} className="flex-1" />
+      <input type="number" value={value} onChange={e => onChange(Number(e.target.value))}
+        className="w-28 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white" />
+    </div>
+  </div>
+);
+
 export default function FutureValue() {
   const [initial, setInitial] = useState(100000);
   const [rate, setRate] = useState(10);
@@ -39,23 +57,7 @@ export default function FutureValue() {
     return <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={13} fontWeight="700">{`${(percent * 100).toFixed(0)}%`}</text>;
   };
 
-  const Slider = ({ label, value, min, max, step, onChange, display }: {
-    label: string; value: number; min: number; max: number; step: number;
-    onChange: (v: number) => void; display?: string;
-  }) => (
-    <div>
-      <div className="flex justify-between mb-2">
-        <label className="text-sm font-medium text-gray-700">{label}</label>
-        <span className="text-sm font-bold text-orange-600">{display ?? value}</span>
-      </div>
-      <div className="flex items-center gap-3">
-        <input type="range" min={min} max={max} step={1} value={value}
-          onChange={e => onChange(Number(e.target.value))} className="flex-1" />
-        <input type="number" value={value} onChange={e => onChange(Number(e.target.value))}
-          className="w-28 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white" />
-      </div>
-    </div>
-  );
+
 
   return (
     <div className="space-y-8">

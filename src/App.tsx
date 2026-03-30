@@ -3,10 +3,11 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
   CreditCard, User, TrendingUp, Split, Coins,
   DollarSign, MapPin, Calendar, Weight, Users, Calculator, Menu, X,
-  Palette, Coffee, Zap
+  Palette, Coffee, Zap, ArrowDownToLine
 } from 'lucide-react';
 import CreditCardEMI from './components/calculators/CreditCardEMI';
 import PersonalLoanEMI from './components/calculators/PersonalLoanEMI';
+import LoanPrepayment from './components/calculators/LoanPrepayment';
 import StockAverage from './components/calculators/StockAverage';
 import StockSplit from './components/calculators/StockSplit';
 import SIPCalculator from './components/calculators/SIPCalculator';
@@ -81,7 +82,7 @@ export const useTheme = () => useContext(ThemeContext);
 
 // ─── CALCULATOR DEFINITIONS ────────────────
 type CalcId =
-  | 'credit-card-emi' | 'personal-loan-emi'
+  | 'credit-card-emi' | 'personal-loan-emi' | 'loan-prepayment'
   | 'stock-average' | 'stock-split' | 'sip' | 'future-value'
   | 'age' | 'bmi'
   | 'trip-cost' | 'group-splitter'
@@ -97,6 +98,7 @@ const calculators: CalcItem[] = [
   ...[
     { id: 'credit-card-emi', label: 'Credit Card EMI', icon: <CreditCard className="w-4 h-4" />, category: 'Finance', color: 'text-blue-600', bgColor: 'bg-blue-50' },
     { id: 'personal-loan-emi', label: 'Personal Loan EMI', icon: <User className="w-4 h-4" />, category: 'Finance', color: 'text-violet-600', bgColor: 'bg-violet-50' },
+    { id: 'loan-prepayment', label: 'Loan Prepayment', icon: <ArrowDownToLine className="w-4 h-4" />, category: 'Finance', color: 'text-rose-600', bgColor: 'bg-rose-50' },
     { id: 'stock-average', label: 'Stock Average', icon: <TrendingUp className="w-4 h-4" />, category: 'Investment', color: 'text-emerald-600', bgColor: 'bg-emerald-50' },
     { id: 'stock-split', label: 'Stock Split', icon: <Split className="w-4 h-4" />, category: 'Investment', color: 'text-teal-600', bgColor: 'bg-teal-50' },
     { id: 'sip', label: 'SIP Calculator', icon: <Coins className="w-4 h-4" />, category: 'Investment', color: 'text-purple-600', bgColor: 'bg-purple-50' },
@@ -123,6 +125,7 @@ function renderCalculator(id: CalcId) {
   switch (id) {
     case 'credit-card-emi':   return <CreditCardEMI />;
     case 'personal-loan-emi': return <PersonalLoanEMI />;
+    case 'loan-prepayment':   return <LoanPrepayment />;
     case 'stock-average':     return <StockAverage />;
     case 'stock-split':       return <StockSplit />;
     case 'sip':               return <SIPCalculator />;

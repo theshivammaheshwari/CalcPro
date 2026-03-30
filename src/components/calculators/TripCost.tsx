@@ -11,6 +11,24 @@ const EXPENSE_TYPES = ['Food', 'Accommodation', 'Activities', 'Drinks', 'Other']
 
 interface Expense { type: string; amount: number; }
 
+const Slider = ({ label, value, min, max, step, onChange, suffix }: {
+  label: string; value: number; min: number; max: number; step: number;
+  onChange: (v: number) => void; suffix?: string;
+}) => (
+  <div>
+    <div className="flex justify-between mb-2">
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <span className="text-sm font-bold text-cyan-600">{value}{suffix}</span>
+    </div>
+    <div className="flex items-center gap-3">
+      <input type="range" min={min} max={max} step={1} value={value}
+        onChange={e => onChange(Number(e.target.value))} className="flex-1" />
+      <input type="number" value={value} onChange={e => onChange(Number(e.target.value))}
+        className="w-24 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400" />
+    </div>
+  </div>
+);
+
 export default function TripCost() {
   const [distance, setDistance] = useState(530);
   const [fuelEfficiency, setFuelEfficiency] = useState(15);
@@ -39,23 +57,7 @@ export default function TripCost() {
     }
   };
 
-  const Slider = ({ label, value, min, max, step, onChange, suffix }: {
-    label: string; value: number; min: number; max: number; step: number;
-    onChange: (v: number) => void; suffix?: string;
-  }) => (
-    <div>
-      <div className="flex justify-between mb-2">
-        <label className="text-sm font-medium text-gray-700">{label}</label>
-        <span className="text-sm font-bold text-cyan-600">{value}{suffix}</span>
-      </div>
-      <div className="flex items-center gap-3">
-        <input type="range" min={min} max={max} step={1} value={value}
-          onChange={e => onChange(Number(e.target.value))} className="flex-1" />
-        <input type="number" value={value} onChange={e => onChange(Number(e.target.value))}
-          className="w-24 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400" />
-      </div>
-    </div>
-  );
+
 
   return (
     <div className="space-y-6">

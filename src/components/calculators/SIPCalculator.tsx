@@ -18,6 +18,24 @@ const fmtShort = (v: number) => {
 
 const PIE_COLORS = [['#4F46E5', '#818CF8'], ['#10B981', '#6EE7B7']];
 
+const Slider = ({ label, value, min, max, step, onChange, display }: {
+  label: string; value: number; min: number; max: number; step: number;
+  onChange: (v: number) => void; display?: string;
+}) => (
+  <div>
+    <div className="flex justify-between mb-1.5">
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <span className="text-sm font-bold text-indigo-600">{display ?? value}</span>
+    </div>
+    <div className="flex items-center gap-2">
+      <input type="range" min={min} max={max} step={1} value={value}
+        onChange={e => onChange(Number(e.target.value))} className="flex-1" />
+      <input type="number" value={value} onChange={e => onChange(Number(e.target.value))}
+        className="w-24 px-3 py-1.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white" />
+    </div>
+  </div>
+);
+
 export default function SIPCalculator() {
   const [type, setType] = useState<CalcType>('sip');
   const [amount, setAmount] = useState(5000);
@@ -88,23 +106,7 @@ export default function SIPCalculator() {
     { name: 'Returns', value: Math.max(res.ret, 0) },
   ];
 
-  const Slider = ({ label, value, min, max, step, onChange, display }: {
-    label: string; value: number; min: number; max: number; step: number;
-    onChange: (v: number) => void; display?: string;
-  }) => (
-    <div>
-      <div className="flex justify-between mb-1.5">
-        <label className="text-sm font-medium text-gray-700">{label}</label>
-        <span className="text-sm font-bold text-indigo-600">{display ?? value}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <input type="range" min={min} max={max} step={1} value={value}
-          onChange={e => onChange(Number(e.target.value))} className="flex-1" />
-        <input type="number" value={value} onChange={e => onChange(Number(e.target.value))}
-          className="w-24 px-3 py-1.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white" />
-      </div>
-    </div>
-  );
+
 
   const tabs = [
     { id: 'sip' as CalcType,      label: 'Regular SIP',   icon: <Coins className="w-4 h-4" /> },
