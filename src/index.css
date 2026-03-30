@@ -1,0 +1,157 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #4F46E5;
+  --color-primary-light: #6366F1;
+  --color-accent: #06B6D4;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+}
+
+* {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+body {
+  @apply bg-slate-50 text-gray-900 antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 rounded-full;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-indigo-300 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-indigo-400;
+}
+
+/* Range input styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: #E0E7FF;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #4F46E5;
+  cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.2);
+  transition: box-shadow 0.2s;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 0 5px rgba(79,70,229,0.3);
+}
+
+/* Glass card */
+.glass-card {
+  @apply bg-white/80 backdrop-blur-sm border border-white/60 rounded-2xl shadow-lg;
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-gradient-to-r from-indigo-600 to-cyan-500 bg-clip-text text-transparent;
+}
+
+/* Animated value */
+.value-pop {
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.9); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Smooth number transition */
+.result-card {
+  @apply rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1;
+}
+
+/* Table styles */
+.calc-table th {
+  @apply px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50;
+}
+.calc-table td {
+  @apply px-3 py-2.5 text-sm border-b border-gray-100;
+}
+.calc-table tr:hover td {
+  @apply bg-indigo-50/40;
+}
+
+/* Active nav item glow */
+.nav-active {
+  @apply bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-300/50;
+}
+
+/* Input focus ring */
+.calc-input {
+  @apply w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all duration-200 bg-white text-gray-900 placeholder-gray-400;
+}
+
+/* Section header chip */
+.section-chip {
+  @apply inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest;
+}
+
+/* Mobile: ensure tables don't overflow */
+@media (max-width: 640px) {
+  .calc-table th, .calc-table td {
+    @apply px-2 py-2 text-xs;
+  }
+  /* Increase touch targets */
+  button {
+    min-height: 36px;
+  }
+  /* Padding above FAB */
+  footer {
+    padding-bottom: 5rem;
+  }
+}
+
+/* Premium animated gradient border on active card */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.glass-card {
+  position: relative;
+}
+.glass-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 1rem;
+  background: linear-gradient(90deg, transparent, rgba(99,102,241,0.2), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+.glass-card > * { position: relative; z-index: 1; }
+
+/* Smooth range slider transition */
+input[type="range"] {
+  transition: background 0.2s;
+}
+
+/* Number input spin button hide */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+}
