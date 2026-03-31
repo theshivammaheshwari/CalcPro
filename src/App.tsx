@@ -3,8 +3,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
   CreditCard, User, TrendingUp, Split, Coins,
   DollarSign, MapPin, Calendar, Weight, Users, Calculator, Menu, X,
-  Palette, Coffee, Zap, ArrowDownToLine, LogOut
+  Palette, Coffee, Zap, ArrowDownToLine, LogOut, Bell
 } from 'lucide-react';
+import { collection, query, where, onSnapshot, updateDoc, doc, arrayUnion } from 'firebase/firestore';
+import { db } from './lib/firebase';
 import CreditCardEMI from './components/calculators/CreditCardEMI';
 import PersonalLoanEMI from './components/calculators/PersonalLoanEMI';
 import LoanPrepayment from './components/calculators/LoanPrepayment';
@@ -20,6 +22,8 @@ import HireMe from './components/HireMe';
 import Dashboard from './components/Dashboard';
 import Footer from './components/layout/Footer';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+
+
 
 export function LoginButton({ onDashboard }: { onDashboard: () => void }) {
   const { user, loginWithGoogle, logout } = useAuth();
@@ -66,6 +70,91 @@ export function LoginButton({ onDashboard }: { onDashboard: () => void }) {
     <button onClick={loginWithGoogle} className="px-5 py-2 bg-gray-900 text-white text-sm font-bold rounded-xl hover:bg-gray-800 transition-colors shadow-md">
       Log In
     </button>
+  );
+}
+
+// ─── NOTIFICATION BELL ────────────────────────────
+interface AppNotification {
+  id: string; tripId: string; message: string; timestamp: any; 
+  recipientUids: string[]; readByUids: string[];
+}
+
+function NotificationBell({ onNavigate }: { onNavigate: (tripId: string) => void }) {
+  const { user } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [notifs, setNotifs] = useState<AppNotification[]>([]);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, 'notifications'), where('recipientUids', 'array-contains', user.uid));
+    const unsub = onSnapshot(q, (snap) => {
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() } as AppNotification));
+      data.sort((a, b) => (b.timestamp?.toMillis?.() || 0) - (a.timestamp?.toMillis?.() || 0));
+      setNotifs(data.slice(0, 15));
+    });
+    return () => unsub();
+  }, [user]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    if (open) document.addEventListener('mousedown', handleClickOutside);
+    else document.removeEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
+  if (!user) return null;
+  const unreadCount = notifs.filter(n => !n.readByUids?.includes(user.uid)).length;
+
+  const handleAlertClick = async (n: AppNotification) => {
+    setOpen(false);
+    onNavigate(n.tripId);
+    if (!n.readByUids?.includes(user.uid)) {
+      try { await updateDoc(doc(db, 'notifications', n.id), { readByUids: arrayUnion(user.uid) }); } catch {}
+    }
+  };
+
+  return (
+    <div className="flex items-center relative" ref={menuRef}>
+      <button onClick={() => setOpen(!open)} className="relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-all focus:outline-none">
+        <Bell className="w-5 h-5 text-gray-700" />
+        {unreadCount > 0 && <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full animate-pulse border border-white" />}
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 10 }} transition={{ duration: 0.15 }}
+            className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 flex flex-col max-h-[400px]"
+          >
+            <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <span className="font-bold text-gray-800">Notifications</span>
+              {unreadCount > 0 && <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{unreadCount} New</span>}
+            </div>
+            <div className="overflow-y-auto flex-1 p-2">
+              {notifs.length === 0 ? (
+                <div className="text-center py-8 text-gray-400 text-sm">No notifications yet.</div>
+              ) : (
+                notifs.map(n => {
+                  const isUnread = !n.readByUids?.includes(user.uid);
+                  return (
+                    <button key={n.id} onClick={() => handleAlertClick(n)} className={`w-full text-left px-3 py-3 rounded-xl transition-colors mb-1 flex items-start gap-3 ${isUnread ? 'bg-indigo-50/50 hover:bg-indigo-50' : 'hover:bg-gray-50'}`}>
+                      <div className={`w-2 h-2 mt-2 rounded-full shrink-0 ${isUnread ? 'bg-indigo-500' : 'bg-transparent'}`} />
+                      <div>
+                        <p className={`text-sm leading-tight ${isUnread ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>{n.message}</p>
+                        <p className="text-[10px] text-gray-400 mt-1">{n.timestamp?.toDate ? new Date(n.timestamp.toDate()).toLocaleString() : 'Just now'}</p>
+                      </div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -355,7 +444,8 @@ export default function App() {
             </nav>
 
             {/* Right controls */}
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              <NotificationBell onNavigate={(tid) => handleSelect('group-splitter', { tripId: tid })} />
               <LoginButton onDashboard={() => handleSelect('dashboard')} />
               <ThemePicker current={themeId} onChange={setThemeId} />
               <button
@@ -460,6 +550,7 @@ export default function App() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeCalc}
+                id="calculator-content"
                 initial={{ opacity: 0, scale: 0.99 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.99 }}

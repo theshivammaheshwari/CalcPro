@@ -1,11 +1,25 @@
 import { useState, useEffect } from 'react';
-import { PlusCircle, Receipt, Users, Wallet, ArrowRight, Pencil, Trash2, X, UserPlus, Home, User, Users2, Share2, ShieldAlert, Check, Link, KeyRound, Loader2, Lock, Unlock } from 'lucide-react';
-import { doc, onSnapshot, setDoc, updateDoc, serverTimestamp, arrayUnion, query, collection, where, getDocs } from 'firebase/firestore';
+import { PlusCircle, Receipt, Users, Wallet, ArrowRight, Pencil, Trash2, X, UserPlus, Home, User, Users2, Share2, ShieldAlert, Check, Link, KeyRound, Loader2, Lock, Unlock, Download } from 'lucide-react';
+import { doc, onSnapshot, setDoc, updateDoc, serverTimestamp, arrayUnion, query, collection, where, getDocs, addDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../contexts/AuthContext';
 import SaveCalculation from '../SaveCalculation';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
-interface Expense { id: string; payer: string; item: string; amount: number; sharedAmong: string[]; addedByUid?: string; }
+export const EXPENSE_CATEGORIES = ['Food & Dining', 'Transportation', 'Accommodation', 'Activities', 'Shopping', 'Groceries', 'Miscellaneous'];
+const CATEGORY_COLORS: Record<string, string> = {
+  'Food & Dining': '#F59E0B',
+  'Transportation': '#3B82F6',
+  'Accommodation': '#8B5CF6',
+  'Activities': '#ec4899',
+  'Shopping': '#10B981',
+  'Groceries': '#14B8A6',
+  'Miscellaneous': '#64748B'
+};
+
+interface Expense { id: string; payer: string; item: string; amount: number; sharedAmong: string[]; addedByUid?: string; category?: string; }
 interface IndividualData { paid: number; commonShare: number; exclusiveShare: number; totalShare: number; netAmount: number; }
 interface TripPerson { name: string; claimUid: string | null; }
 
@@ -34,12 +48,14 @@ export default function GroupSplitter({ initialData, initialTripId }: { initialD
   const [joining, setJoining] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Input State
   const [newName, setNewName] = useState('');
   const [payer, setPayer] = useState('');
   const [item, setItem] = useState('');
   const [amount, setAmount] = useState('');
+  const [category, setCategory] = useState('Food & Dining');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [fHead, setFHead] = useState('');
   const [fMembers, setFMembers] = useState('');
@@ -149,6 +165,27 @@ export default function GroupSplitter({ initialData, initialTripId }: { initialD
     await pullUpdate({ isLocked: !isLocked });
   };
 
+  const exportPDF = async () => {
+    const el = document.getElementById('report-content');
+    if (!el) return;
+    setIsExporting(true);
+    try {
+      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#f8fafc' });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const w = pdf.internal.pageSize.getWidth();
+      const h = (canvas.height * w) / canvas.width;
+      // Add a slight margin on top for aesthetics
+      pdf.addImage(imgData, 'PNG', 0, 5, w, h);
+      pdf.save(`CalcIndia_${title.replace(/\s+/g, '_')}_Report.pdf`);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to export PDF");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   // Interaction handlers
   const canEdit = isLive ? (isAdmin || (iAmJoined && !isLocked)) : true;
   
@@ -179,6 +216,7 @@ export default function GroupSplitter({ initialData, initialTripId }: { initialD
     const e: Expense = { 
       id: editingId || Math.random().toString(36).substr(2, 9),
       payer, item, amount: parseFloat(amount), 
+      category,
       sharedAmong: [...selectedUsers], 
       addedByUid: editingId ? (expenses.find(x => x.id === editingId)?.addedByUid) : user?.uid 
     };
@@ -191,21 +229,53 @@ export default function GroupSplitter({ initialData, initialTripId }: { initialD
       updated = [...expenses, e];
     }
     
-    if (isLive) await pullUpdate({ expenses: updated });
-    else setExpenses(updated);
+    if (isLive) {
+      await pullUpdate({ expenses: updated });
+      // Notify others
+      const recipients = people.map(p => p.claimUid).filter(uid => uid && uid !== user?.uid) as string[];
+      if (recipients.length > 0) {
+        try {
+          await addDoc(collection(db, 'notifications'), {
+            tripId: tripId!,
+            message: `${myPerson?.name || 'Admin'} ${editingId ? 'updated' : 'added'} an expense: ₹${amount} for ${item}`,
+            timestamp: serverTimestamp(),
+            recipientUids: recipients,
+            readByUids: []
+          });
+        } catch (e) { console.error("Notif error", e); }
+      }
+    } else {
+      setExpenses(updated);
+    }
     
-    setPayer(isLive && myPerson ? myPerson.name : ''); setItem(''); setAmount(''); setSelectedUsers([]);
+    setPayer(isLive && myPerson ? myPerson.name : ''); setItem(''); setAmount(''); setCategory('Food & Dining'); setSelectedUsers([]);
   };
 
   const startEdit = (e: Expense) => {
-    setPayer(e.payer); setItem(e.item); setAmount(e.amount.toString()); setSelectedUsers(e.sharedAmong);
+    setPayer(e.payer); setItem(e.item); setAmount(e.amount.toString()); setCategory(e.category || 'Food & Dining'); setSelectedUsers(e.sharedAmong);
     setEditingId(e.id); setActiveTab('expense');
   };
 
   const delExpense = async (id: string) => {
     const updated = expenses.filter(x => x.id !== id);
-    if (isLive) await pullUpdate({ expenses: updated });
-    else setExpenses(updated);
+    if (isLive) {
+      await pullUpdate({ expenses: updated });
+      const delExp = expenses.find(x => x.id === id);
+      const recipients = people.map(p => p.claimUid).filter(uid => uid && uid !== user?.uid) as string[];
+      if (recipients.length > 0 && delExp) {
+        try {
+          await addDoc(collection(db, 'notifications'), {
+            tripId: tripId!,
+            message: `${myPerson?.name || 'Admin'} deleted expense: ${delExp.item}`,
+            timestamp: serverTimestamp(),
+            recipientUids: recipients,
+            readByUids: []
+          });
+        } catch (e) {}
+      }
+    } else {
+      setExpenses(updated);
+    }
   };
 
   const removePerson = async (n: string) => {
@@ -429,7 +499,12 @@ export default function GroupSplitter({ initialData, initialTripId }: { initialD
                 {people.map(p => <option key={p.name} value={p.name} disabled={isLive && !isAdmin && p.name !== myPerson?.name}>{p.name}{p.name === myPerson?.name ? ' (You)' : ''}</option>)}
               </select>
               <input type="text" placeholder="What for? (e.g. Dinner)" value={item} onChange={e => setItem(e.target.value)} className="calc-input" />
-              <input type="number" placeholder="₹ Amount" value={amount} onChange={e => setAmount(e.target.value)} className="calc-input" />
+              <div className="grid grid-cols-2 gap-3">
+                <input type="number" placeholder="₹ Amount" value={amount} onChange={e => setAmount(e.target.value)} className="calc-input" />
+                <select value={category} onChange={e => setCategory(e.target.value)} className="calc-input">
+                  {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
               <div>
                 <p className="text-sm font-medium text-gray-700 mb-2">Split Among</p>
                 <div className="flex flex-wrap gap-2">
@@ -448,7 +523,7 @@ export default function GroupSplitter({ initialData, initialTripId }: { initialD
           {expenses.length > 0 && (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <table className="w-full calc-table">
-                <thead><tr><th>Payer</th><th>Item</th><th>Amount</th><th>For</th>{canEdit && <th></th>}</tr></thead>
+                <thead><tr><th>Payer</th><th>Item</th><th>Category</th><th>Amount</th><th>For</th>{canEdit && <th></th>}</tr></thead>
                 <tbody>
                   {expenses.map((e) => {
                     const canModify = !isLive || isAdmin || (!isLocked && e.addedByUid === user?.uid);
@@ -456,6 +531,9 @@ export default function GroupSplitter({ initialData, initialTripId }: { initialD
                     <tr key={e.id}>
                       <td className="font-medium text-gray-900">{e.payer}</td>
                       <td className="text-gray-600">{e.item}</td>
+                      <td className="text-[10px] sm:text-xs">
+                        <span className="px-2 py-1 rounded-full text-gray-700 bg-gray-100/80 font-medium border border-gray-200/50 hidden sm:inline-block whitespace-nowrap">{e.category || 'Misc'}</span>
+                      </td>
                       <td className="font-bold text-green-700">₹{e.amount}</td>
                       <td><div className="flex flex-wrap gap-1">{e.sharedAmong.map(u => <span key={u} className="bg-gray-100 px-1.5 py-0.5 rounded text-[10px] text-gray-600">{u}</span>)}</div></td>
                       {canEdit && (
@@ -480,7 +558,76 @@ export default function GroupSplitter({ initialData, initialTripId }: { initialD
 
       {/* Summary Tab */}
       {activeTab === 'summary' && (
-        <div className="space-y-4">
+        <div className="space-y-4" id="report-content">
+          <div className="flex justify-between items-center bg-white p-4 sm:p-5 border-l-4 border-indigo-500 rounded-2xl shadow-sm mb-6">
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 leading-tight">Trip Summary Report</h3>
+              <p className="text-sm font-medium text-gray-500 mt-0.5">Total Spends: <span className="text-indigo-600 font-bold">₹{expenses.reduce((s, e) => s + e.amount, 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span></p>
+            </div>
+            <button 
+              onClick={exportPDF}
+              disabled={isExporting}
+              className="flex items-center gap-2 px-4 py-2.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl text-sm font-bold transition-all disabled:opacity-50 border border-indigo-100"
+            >
+              {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              <span className="hidden sm:inline">{isExporting ? 'Generating PDF...' : 'Download PDF'}</span>
+            </button>
+          </div>
+
+          {expenses.length > 0 && (
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+              <h3 className="font-semibold text-gray-800 mb-4">Spend by Category</h3>
+              <div className="flex flex-col md:flex-row items-center gap-8">
+                <div style={{ width: 220, height: 220 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={Object.entries(expenses.reduce((acc, curr) => {
+                          acc[curr.category || 'Miscellaneous'] = (acc[curr.category || 'Miscellaneous'] || 0) + curr.amount;
+                          return acc;
+                        }, {} as Record<string, number>)).map(([name, value]) => ({ name, value }))}
+                        cx="50%" cy="50%"
+                        innerRadius={60} outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                        isAnimationActive={false}
+                      >
+                        {Object.entries(expenses.reduce((acc, curr) => {
+                          acc[curr.category || 'Miscellaneous'] = (acc[curr.category || 'Miscellaneous'] || 0) + curr.amount;
+                          return acc;
+                        }, {} as Record<string, number>)).map(([name]) => (
+                          <Cell key={name} fill={CATEGORY_COLORS[name] || CATEGORY_COLORS['Miscellaneous']} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex-1 w-full space-y-3">
+                  {Object.entries(expenses.reduce((acc, curr) => {
+                    acc[curr.category || 'Miscellaneous'] = (acc[curr.category || 'Miscellaneous'] || 0) + curr.amount;
+                    return acc;
+                  }, {} as Record<string, number>))
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([cat, amt]) => (
+                    <div key={cat}>
+                      <div className="flex justify-between text-sm mb-1">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: CATEGORY_COLORS[cat] || CATEGORY_COLORS['Miscellaneous'] }} />
+                          <span className="font-medium text-gray-700">{cat}</span>
+                        </div>
+                        <span className="font-bold text-gray-900">₹{amt.toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all" style={{ width: `${(amt / expenses.reduce((s, e) => s + e.amount, 0)) * 100}%`, backgroundColor: CATEGORY_COLORS[cat] || CATEGORY_COLORS['Miscellaneous'] }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
             <h3 className="font-semibold text-gray-800 flex items-center gap-2 mb-4"><Wallet className="w-5 h-5 text-sky-600" /> Balances</h3>
             {people.map(p => (
