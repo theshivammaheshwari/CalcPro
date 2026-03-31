@@ -170,7 +170,17 @@ export default function GroupSplitter({ initialData, initialTripId }: { initialD
     if (!el) return;
     setIsExporting(true);
     try {
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#f8fafc' });
+      const canvas = await html2canvas(el, { 
+        scale: 2, 
+        useCORS: true, 
+        backgroundColor: '#f8fafc',
+        windowWidth: Math.max(1024, window.innerWidth),
+        onclone: (doc) => {
+          const style = doc.createElement('style');
+          style.innerHTML = '.overflow-x-auto { overflow: visible !important; }';
+          doc.head.appendChild(style);
+        }
+      });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();

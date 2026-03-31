@@ -47,7 +47,18 @@ export default function SaveCalculation({ calcId, data }: { calcId: string, data
     if (!el) return;
     setExportingParams(true);
     try {
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const canvas = await html2canvas(el, { 
+        scale: 2, 
+        useCORS: true, 
+        backgroundColor: '#ffffff',
+        windowWidth: Math.max(1024, window.innerWidth),
+        onclone: (doc) => {
+          // Force all scrollable containers to expand to their full content width
+          const style = doc.createElement('style');
+          style.innerHTML = '.overflow-x-auto { overflow: visible !important; }';
+          doc.head.appendChild(style);
+        }
+      });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
