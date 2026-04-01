@@ -18,6 +18,7 @@ import TripCost from './components/calculators/TripCost';
 import AgeCalculator from './components/calculators/AgeCalculator';
 import BMICalculator from './components/calculators/BMICalculator';
 import GroupSplitter from './components/calculators/GroupSplitter';
+import SwingTrading from './components/calculators/SwingTrading';
 import HireMe from './components/HireMe';
 import Dashboard from './components/Dashboard';
 import Footer from './components/layout/Footer';
@@ -222,7 +223,7 @@ export const useTheme = () => useContext(ThemeContext);
 // ─── CALCULATOR DEFINITIONS ────────────────
 type CalcId =
   | 'credit-card-emi' | 'personal-loan-emi' | 'loan-prepayment'
-  | 'stock-average' | 'stock-split' | 'sip' | 'future-value'
+  | 'stock-average' | 'stock-split' | 'sip' | 'future-value' | 'swing-trading'
   | 'age' | 'bmi'
   | 'trip-cost' | 'group-splitter'
   | 'hire-me' | 'dashboard';
@@ -239,6 +240,7 @@ const calculators: CalcItem[] = [
     { id: 'personal-loan-emi', label: 'Personal Loan EMI', icon: <User className="w-4 h-4" />, category: 'Finance', color: 'text-violet-600', bgColor: 'bg-violet-50' },
     { id: 'loan-prepayment', label: 'Loan Prepayment', icon: <ArrowDownToLine className="w-4 h-4" />, category: 'Finance', color: 'text-rose-600', bgColor: 'bg-rose-50' },
     { id: 'stock-average', label: 'Stock Average', icon: <TrendingUp className="w-4 h-4" />, category: 'Investment', color: 'text-emerald-600', bgColor: 'bg-emerald-50' },
+    { id: 'swing-trading', label: 'Swing Trading', icon: <TrendingUp className="w-4 h-4" />, category: 'Investment', color: 'text-indigo-600', bgColor: 'bg-indigo-50' },
     { id: 'stock-split', label: 'Stock Split', icon: <Split className="w-4 h-4" />, category: 'Investment', color: 'text-teal-600', bgColor: 'bg-teal-50' },
     { id: 'sip', label: 'SIP Calculator', icon: <Coins className="w-4 h-4" />, category: 'Investment', color: 'text-purple-600', bgColor: 'bg-purple-50' },
     { id: 'future-value', label: 'Future Value', icon: <DollarSign className="w-4 h-4" />, category: 'Investment', color: 'text-orange-600', bgColor: 'bg-orange-50' },
@@ -267,6 +269,7 @@ function renderCalculator(id: CalcId, loadData: any, handleSelect: any, tripId: 
     case 'personal-loan-emi': return <PersonalLoanEMI initialData={loadData} />;
     case 'loan-prepayment':   return <LoanPrepayment initialData={loadData} />;
     case 'stock-average':     return <StockAverage />;
+    case 'swing-trading':     return <SwingTrading />;
     case 'stock-split':       return <StockSplit />;
     case 'sip':               return <SIPCalculator />;
     case 'future-value':      return <FutureValue />;
